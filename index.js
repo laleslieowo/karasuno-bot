@@ -10,7 +10,11 @@ const {
 } = require("discord.js");
 
 const sqlite3 = require("sqlite3").verbose();
-const { token, staffChannels } = require("./config.json");
+const token = process.env.TOKEN;
+const staffChannels = process.env.STAFFCHANNELS
+  ? process.env.STAFFCHANNELS.split(",")
+  : [];
+
 
 // Comandos
 const commands = [
@@ -31,7 +35,7 @@ const commands = [
 // Registrar comandos sin await
 const rest = new REST({ version: "10" }).setToken(token);
 rest.put(
-  Routes.applicationGuildCommands("MTQ1Mzk0MDA5Njc3OTY4MTc5Mg.GgWLvy.aNUm7TVj0YdZOAsbpX0STtByt-SpZXLmmP9JCM", "1311854978180190259"),
+  Routes.applicationGuildCommands("1453940096779681792", "1311854978180190259"),
   { body: commands }
 )
 .then(() => console.log("Comandos registrados!"))
