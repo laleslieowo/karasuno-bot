@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { 
   Client, 
   GatewayIntentBits, 
@@ -38,6 +40,7 @@ rest.put(
   Routes.applicationGuildCommands("1453940096779681792", "1311854978180190259"),
   { body: commands }
 )
+
 .then(() => console.log("Comandos registrados!"))
 .catch(console.error);
 
