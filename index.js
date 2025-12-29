@@ -11,6 +11,9 @@ const {
   Routes
 } = require("discord.js");
 
+const PORT = process.env.PORT || 3000;
+require('http').createServer((req, res) => res.end('Bot running')).listen(PORT);
+
 const token = process.env.TOKEN;
 const staffChannels = process.env.STAFFCHANNELS
   ? process.env.STAFFCHANNELS.split(",")
