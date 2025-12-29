@@ -11,7 +11,6 @@ const {
   Routes
 } = require("discord.js");
 
-const sqlite3 = require("sqlite3").verbose();
 const token = process.env.TOKEN;
 const staffChannels = process.env.STAFFCHANNELS
   ? process.env.STAFFCHANNELS.split(",")
@@ -36,10 +35,7 @@ const commands = [
 // Registrar comandos
 const rest = new REST({ version: "10" }).setToken(token);
 rest.put(
-  Routes.applicationGuildCommands(
-    "1453940096779681792", // Application ID
-    "1311854978180190259"  // Guild ID
-  ),
+  Routes.applicationGuildCommands("1453940096779681792", "1311854978180190259"), // Application ID, Guild ID
   { body: commands }
 )
 .then(() => console.log("Comandos registrados!"))
@@ -54,39 +50,18 @@ const client = new Client({
   ]
 });
 
-// Base de datos
-const db = new sqlite3.Database("./database.sqlite");
+// Log inicial para Render
+console.log("✅ Iniciando bot sin base de datos...");
 
-// Crear tablas
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      userId TEXT PRIMARY KEY,
-      points INTEGER DEFAULT 0,
-      claimsToday INTEGER DEFAULT 0,
-      lastClaim TEXT
-    )
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS purchases (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      userId TEXT,
-      item TEXT,
-      date TEXT
-    )
-  `);
-});
-
-// Ready
 client.once("ready", () => {
   console.log(`🖤 Bot conectado como ${client.user.tag}`);
 });
 
-// Interacciones
 client.on("interactionCreate", async (interaction) => {
 
-  // BOTONES DE COMPRA
+  // ===============================
+  // BOTONES DE COMPRA (simulados)
+  // ===============================
   if (interaction.isButton()) {
     const userId = interaction.user.id;
     const item = interaction.customId.replace("buy_", "");
@@ -100,48 +75,34 @@ client.on("interactionCreate", async (interaction) => {
       robux: 9000
     };
 
-    const price = prices[item];
+    const price = prices[item] || 0;
 
-    db.get("SELECT points FROM users WHERE userId = ?", [userId], (err, row) => {
-      if (err) return console.error(err);
+    // Simulación de compra (sin DB)
+    staffChannels.forEach(channelId => {
+      const logChannel = client.channels.cache.get(channelId);
+      if (!logChannel) return;
 
-      if (!row || row.points < price) {
-        return interaction.reply({
-          content: "❌ No tienes puntos suficientes.",
-          ephemeral: true
-        });
-      }
+      const logEmbed = new EmbedBuilder()
+        .setTitle("📝 Nueva compra realizada")
+        .setColor(0xFF7A00)
+        .addFields(
+          { name: "Usuario", value: `<@${userId}>`, inline: true },
+          { name: "Item comprado", value: `${item}`, inline: true },
+          { name: "Precio", value: `${price} puntos`, inline: true },
+          { name: "Fecha", value: `${new Date().toLocaleString()}`, inline: false }
+        );
 
-      db.run("UPDATE users SET points = points - ? WHERE userId = ?", [price, userId]);
-      db.run("INSERT INTO purchases (userId, item, date) VALUES (?, ?, ?)", [userId, item, new Date().toISOString()]);
-
-      // Enviar logs a canales de staff
-      staffChannels.forEach(channelId => {
-        const logChannel = client.channels.cache.get(channelId);
-        if (!logChannel) return;
-
-        const logEmbed = new EmbedBuilder()
-          .setTitle("📝 Nueva compra realizada")
-          .setColor(0xFF7A00)
-          .addFields(
-            { name: "Usuario", value: `<@${userId}>`, inline: true },
-            { name: "Item comprado", value: `${item}`, inline: true },
-            { name: "Precio", value: `${price} puntos`, inline: true },
-            { name: "Fecha", value: `${new Date().toLocaleString()}`, inline: false }
-          );
-
-        logChannel.send({ embeds: [logEmbed] });
-      });
-
-      interaction.reply({ content: `✅ Compra realizada: ${item} por ${price} puntos.`, ephemeral: true });
+      logChannel.send({ embeds: [logEmbed] });
     });
-    return;
+
+    return interaction.reply({ content: `✅ Compra simulada: ${item} por ${price} puntos.`, ephemeral: true });
   }
 
-  // COMANDOS SLASH
+  // ===============================
+  // COMANDOS SLASH (simulados)
+  // ===============================
   if (!interaction.isChatInputCommand()) return;
 
-  // ADDPOINTS
   if (interaction.commandName === "addpoints") {
     if (!interaction.member.permissions.has("Administrator")) {
       return interaction.reply({ content: "❌ No autorizado", ephemeral: true });
@@ -151,37 +112,10 @@ client.on("interactionCreate", async (interaction) => {
     const tipo = interaction.options.getString("tipo");
     const puntos = tipo === "mvp" ? 30 : 20;
 
-    db.get("SELECT * FROM users WHERE userId = ?", [user.id], (err, row) => {
-      if (err) return console.error(err);
-
-      const today = new Date().toISOString().split("T")[0];
-      const maxClaimsPerDay = 6;
-
-      if (!row) {
-        db.run(
-          "INSERT INTO users (userId, points, claimsToday, lastClaim) VALUES (?, ?, ?, ?)",
-          [user.id, puntos, 1, today]
-        );
-      } else {
-        let newClaims = row.claimsToday;
-        if (row.lastClaim !== today) newClaims = 0;
-
-        if (newClaims >= maxClaimsPerDay) {
-          return interaction.reply({ content: `❌ Ya alcanzaste el máximo de ${maxClaimsPerDay} puntos hoy.`, ephemeral: true });
-        }
-
-        db.run(
-          "UPDATE users SET points = points + ?, claimsToday = ?, lastClaim = ? WHERE userId = ?",
-          [puntos, newClaims + 1, today, user.id]
-        );
-      }
-
-      interaction.reply({ content: `✅ ${user.username} recibió **${puntos} puntos**.` });
-    });
-    return;
+    // Simulación (sin DB)
+    return interaction.reply({ content: `✅ ${user.username} recibió **${puntos} puntos** (simulado).` });
   }
 
-  // SHOP
   if (interaction.commandName === "shop") {
     const embed = new EmbedBuilder()
       .setTitle("🏐🔥 Tienda Karasuno")
@@ -208,9 +142,9 @@ client.on("interactionCreate", async (interaction) => {
       new ButtonBuilder().setCustomId("buy_robux").setLabel("200 Robux").setStyle(ButtonStyle.Primary)
     );
 
-    interaction.reply({ embeds: [embed], components: [row1, row2] });
-    return;
+    return interaction.reply({ embeds: [embed], components: [row1, row2] });
   }
 });
 
+// Login
 client.login(token);
