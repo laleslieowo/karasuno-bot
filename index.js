@@ -71,15 +71,39 @@ client.once("ready", () => {
 // -----------------------
 // Funciones para puntos
 // -----------------------
-function savePoints() {
-  fs.writeFileSync(pointsFile, JSON.stringify(points, null, 2));
+function getToday() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function ensureUser(userId) {
+  if (!points[userId]) {
+    points[userId] = {
+      points: 0,
+      usesToday: 0,
+      lastDay: getToday()
+    };
+  }
+
+  // Si es un nuevo día, reinicia contador
+  if (points[userId].lastDay !== getToday()) {
+    points[userId].usesToday = 0;
+    points[userId].lastDay = getToday();
+  }
 }
 
 function addPoints(userId, amount) {
-  if (!points[userId]) points[userId] = 0;
-  points[userId] += amount;
+  ensureUser(userId);
+
+  if (points[userId].usesToday >= 6) {
+    return false; // límite alcanzado
+  }
+
+  points[userId].points += amount;
+  points[userId].usesToday += 1;
   savePoints();
+  return true;
 }
+
 
 // -----------------------
 // Interacciones
@@ -144,9 +168,19 @@ client.on("interactionCreate", async (interaction) => {
     const tipo = interaction.options.getString("tipo");
     const puntos = tipo === "mvp" ? 30 : 20;
 
-    addPoints(user.id, puntos);
-    interaction.reply({ content: `✅ ${user.username} recibió **${puntos} puntos**.` });
-    return;
+   const success = addPoints(user.id, puntos);
+
+if (!success) {
+  return interaction.reply({
+    content: "❌ Este usuario ya alcanzó el límite de **6 veces hoy**.",
+    ephemeral: true
+  });
+}
+
+interaction.reply({
+  content: `✅ ${user.username} recibió **${puntos} puntos**.`
+});
+
   }
 
   if (interaction.commandName === "shop") {
