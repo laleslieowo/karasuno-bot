@@ -17,7 +17,6 @@ const staffChannels = process.env.STAFFCHANNELS
   ? process.env.STAFFCHANNELS.split(",")
   : [];
 
-
 // Comandos
 const commands = [
   {
@@ -34,13 +33,15 @@ const commands = [
   }
 ];
 
-// Registrar comandos sin await
+// Registrar comandos
 const rest = new REST({ version: "10" }).setToken(token);
 rest.put(
-  Routes.applicationGuildCommands("1453940096779681792", "1311854978180190259"),
+  Routes.applicationGuildCommands(
+    "1453940096779681792", // Application ID
+    "1311854978180190259"  // Guild ID
+  ),
   { body: commands }
 )
-
 .then(() => console.log("Comandos registrados!"))
 .catch(console.error);
 
@@ -77,15 +78,15 @@ db.serialize(() => {
   `);
 });
 
+// Ready
 client.once("ready", () => {
   console.log(`🖤 Bot conectado como ${client.user.tag}`);
 });
 
+// Interacciones
 client.on("interactionCreate", async (interaction) => {
 
-  // ===============================
   // BOTONES DE COMPRA
-  // ===============================
   if (interaction.isButton()) {
     const userId = interaction.user.id;
     const item = interaction.customId.replace("buy_", "");
@@ -114,6 +115,7 @@ client.on("interactionCreate", async (interaction) => {
       db.run("UPDATE users SET points = points - ? WHERE userId = ?", [price, userId]);
       db.run("INSERT INTO purchases (userId, item, date) VALUES (?, ?, ?)", [userId, item, new Date().toISOString()]);
 
+      // Enviar logs a canales de staff
       staffChannels.forEach(channelId => {
         const logChannel = client.channels.cache.get(channelId);
         if (!logChannel) return;
@@ -136,12 +138,10 @@ client.on("interactionCreate", async (interaction) => {
     return;
   }
 
-  // ===============================
   // COMANDOS SLASH
-  // ===============================
   if (!interaction.isChatInputCommand()) return;
 
-  // 1️⃣ ADDPOINTS
+  // ADDPOINTS
   if (interaction.commandName === "addpoints") {
     if (!interaction.member.permissions.has("Administrator")) {
       return interaction.reply({ content: "❌ No autorizado", ephemeral: true });
@@ -181,7 +181,7 @@ client.on("interactionCreate", async (interaction) => {
     return;
   }
 
-  // 2️⃣ SHOP
+  // SHOP
   if (interaction.commandName === "shop") {
     const embed = new EmbedBuilder()
       .setTitle("🏐🔥 Tienda Karasuno")
@@ -214,4 +214,3 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.login(token);
-
