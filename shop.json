@@ -1,0 +1,33 @@
+{
+  "cuervo_novato": {
+    "name": "🐦‍⬛ Cuervo Novato",
+    "price": 40,
+    "limit": null
+  },
+  "cuervo_pro": {
+    "name": "🔥 Cuervo Pro",
+    "price": 2000,
+    "limit": null
+  },
+  "cuervo_leyenda": {
+    "name": "👑 Cuervo Leyenda",
+    "price": 7000,
+    "limit": null
+  },
+  "tiktok": {
+    "name": "🎥 Participación en TikTok",
+    "price": 700,
+    "limit": null
+  },
+  "entrenamiento": {
+    "name": "🏐 Entrenamiento con staff",
+    "price": 2000,
+    "limit": 2
+  },
+  "robux": {
+    "name": "💰 200 Robux",
+    "price": 9000,
+    "limit": 1
+  }
+}
+
