@@ -11,8 +11,11 @@ const {
   Routes
 } = require("discord.js");
 
+// Esto hace que Render detecte un puerto abierto
 const PORT = process.env.PORT || 3000;
-require('http').createServer((req, res) => res.end('Bot running')).listen(PORT);
+require('http').createServer((req, res) => res.end('Bot running')).listen(PORT, () => {
+  console.log(`🌐 Servidor web falso escuchando en puerto ${PORT}`);
+});
 
 const token = process.env.TOKEN;
 const staffChannels = process.env.STAFFCHANNELS
