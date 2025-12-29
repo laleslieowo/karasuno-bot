@@ -39,8 +39,24 @@ const commands = [
       { name: "usuario", description: "Usuario que recibirá puntos", type: 6, required: true },
       { name: "tipo", description: "Tipo de puntos (mvp/normal)", type: 3, required: true }
     ]
+  },
+  {
+    name: "points",
+    description: "Ver puntos",
+    options: [
+      {
+        name: "usuario",
+        description: "Ver puntos de otro usuario (solo staff)",
+        type: 6,
+        required: false
+      }
+    ]
   }
 ];
+
+
+
+
 
 // -----------------------
 // Registrar comandos
